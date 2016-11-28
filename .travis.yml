@@ -8,4 +8,7 @@ install:
   - go get github.com/stretchr/testify/assert
 
 script:
-  - make test
+  - make test-coverage
+
+after_success:
+  - make send-codecov-ci
