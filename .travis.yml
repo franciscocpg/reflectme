@@ -18,5 +18,9 @@ script:
   - make test-coverage
   - make travis-release
 
+env:
+  global:
+  - ENCRYPTION_LABEL: "e53e59254cc7"
+
 after_success:
   - make send-codecov-ci
