@@ -42,4 +42,4 @@ git-semver:
 	git semver 1>/dev/null 2>&1 || (git clone https://github.com/markchalloner/git-semver.git /tmp/git-semver && cd /tmp/git-semver && git checkout $( \
     git tag | grep '^[0-9]\+\.[0-9]\+\.[0-9]\+$' | \
     sort -t. -k 1,1n -k 2,2n -k 3,3n | tail -n 1 \
-) && ./install.sh)
+) && sudo ./install.sh)
