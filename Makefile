@@ -35,6 +35,9 @@ next-version: git-semver
 release: next-version
 	git push --tags
 
+travis-release:
+	.travis/release.sh
+
 git-semver:
 	git semver 1>/dev/null 2>&1 || (git clone https://github.com/markchalloner/git-semver.git /tmp/git-semver && cd /tmp/git-semver && git checkout $( \
     git tag | grep '^[0-9]\+\.[0-9]\+\.[0-9]\+$' | \
