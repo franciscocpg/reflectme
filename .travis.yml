@@ -16,6 +16,7 @@ install:
 
 script:
   - make test-coverage
+  - make travis-release
 
 after_success:
   - make send-codecov-ci
