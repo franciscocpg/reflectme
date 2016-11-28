@@ -5,8 +5,8 @@ go:
   - 1.7
 
 branches:
-  except:
-  - /\d+\.\d+\.\d+$/
+  only:
+  - master
 
 install:
   - wget https://github.com/Masterminds/glide/releases/download/v0.12.3/glide-v0.12.3-linux-amd64.tar.gz -O /tmp/glide-v0.12.3-linux-amd64.tar.gz
@@ -17,6 +17,10 @@ install:
 script:
   - make test-coverage
   - make travis-release
+
+env:
+  global:
+  - ENCRYPTION_LABEL: "e53e59254cc7"
 
 after_success:
   - make send-codecov-ci
