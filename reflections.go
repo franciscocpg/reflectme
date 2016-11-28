@@ -3,13 +3,11 @@
 // See the file LICENSE for copying permission.
 
 /*
+Package reflectme provides high level abstractions above the golang reflect library with some utilities functions.
+
+The base code is a fork of https://github.com/oleiade/reflections. Then some other concepts and functions were added.
 Package reflections provides high level abstractions above the
 reflect library.
-
-Reflect library is very low-level and as can be quite complex when it comes to do simple things like accessing a structure field value, a field tag...
-
-The purpose of reflections package is to make developers life easier when it comes to introspect structures at runtime.
-It's API is freely inspired from python language (getattr, setattr, hasattr...) and provides a simplified access to structure fields and tags.
 */
 package reflectme
 
