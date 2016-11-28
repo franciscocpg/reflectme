@@ -5,7 +5,10 @@ go:
   - 1.7
 
 install:
-  - go get github.com/stretchr/testify/assert
+  - wget https://github.com/Masterminds/glide/releases/download/v0.12.3/glide-v0.12.3-linux-amd64.tar.gz -O /tmp/glide-v0.12.3-linux-amd64.tar.gz
+  - tar -xvf /tmp/glide-v0.12.3-linux-amd64.tar.gz
+  - export PATH=$PATH:$PWD/linux-amd64/
+  - make install-deps
 
 script:
   - make test-coverage
