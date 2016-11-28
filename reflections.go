@@ -61,7 +61,7 @@ func GetFieldKind(obj interface{}, name string) (reflect.Kind, error) {
 // GetFieldTag returns the provided obj field tag value. obj can whether
 // be a structure or pointer to structure.
 func GetFieldTag(obj interface{}, fieldName, tagKey string) (string, error) {
-	field, err := getInnerFieldType(obj, fieldName, fieldName)
+	field, err := getInnerFieldType(obj, fieldName)
 	if err != nil {
 		return "", err
 	}
@@ -157,12 +157,8 @@ func fieldsNames(obj interface{}, parent string) ([]string, error) {
 			fields = append(fields, fieldName)
 		}
 		if k := objValue.Field(i).Kind(); k == reflect.Struct || k == reflect.Ptr {
-			nestedFields, err := fieldsNames(objValue.Field(i).Interface(), fieldName)
-			if err == nil {
-				fields = append(fields, nestedFields...)
-			} else {
-				return fields, err
-			}
+			nestedFields, _ := fieldsNames(objValue.Field(i).Interface(), fieldName)
+			fields = append(fields, nestedFields...)
 		}
 	}
 
@@ -187,12 +183,8 @@ func Fields(obj interface{}) ([]reflect.StructField, error) {
 			fields = append(fields, field)
 		}
 		if k := objValue.Field(i).Kind(); k == reflect.Struct || k == reflect.Ptr {
-			nestedFields, err := Fields(objValue.Field(i).Interface())
-			if err == nil {
-				fields = append(fields, nestedFields...)
-			} else {
-				return fields, err
-			}
+			nestedFields, _ := Fields(objValue.Field(i).Interface())
+			fields = append(fields, nestedFields...)
 		}
 	}
 
@@ -262,23 +254,15 @@ func CopyWithOptions(from interface{}, to interface{}, options CopyOptions) erro
 	if !isPointer(to) {
 		return errors.New("To must be a pointer")
 	}
-	fromFields, err := FieldsNames(from)
-	if err != nil {
-		return err
-	}
-	_, err = FieldsNames(to)
-	if err != nil {
-		return err
-	}
+	// Already check if is a pointer so should never get an error
+	fromFields, _ := FieldsNames(from)
 	for _, field := range fromFields {
-		v, err := GetField(from, field)
-		if err != nil {
-			return err
-		}
+		// Reflecting using FieldsNames so should never get an error
+		v, _ := GetField(from, field)
 		if !options.CopyZeroValues && IsZeroValue(v) {
 			continue
 		}
-		err = SetField(to, field, v)
+		err := SetField(to, field, v)
 		if !options.IgnoreNotFoundedFields && err != nil {
 			return err
 		}
@@ -290,6 +274,11 @@ func CopyWithOptions(from interface{}, to interface{}, options CopyOptions) erro
 // according to golang spec: https://golang.org/ref/spec#The_zero_value
 func IsZeroValue(i interface{}) bool {
 	return i == nil || reflect.DeepEqual(i, reflect.Zero(reflect.TypeOf(i)).Interface())
+}
+
+// IsStruct checks whether the kind of a type is a struct
+func IsStruct(obj interface{}) bool {
+	return obj != nil && reflect.TypeOf(obj).Kind() == reflect.Struct
 }
 
 func reflectValue(obj interface{}) reflect.Value {
@@ -319,10 +308,6 @@ func hasValidType(obj interface{}, types []reflect.Kind) bool {
 	return false
 }
 
-func isStruct(obj interface{}) bool {
-	return reflect.TypeOf(obj).Kind() == reflect.Struct
-}
-
 func isPointer(obj interface{}) bool {
 	return reflect.TypeOf(obj).Kind() == reflect.Ptr
 }
@@ -338,57 +323,51 @@ func getCurrAndNextFieldName(name string) (string, string) {
 }
 
 func getInnerField(obj interface{}, name string) (reflect.Value, error) {
-	field := reflect.Value{}
-	if !hasValidType(obj, []reflect.Kind{reflect.Struct, reflect.Ptr}) {
-		return field, errors.New("Cannot use GetField on a non-struct interface")
-	}
-
-	objValue := reflectValue(obj)
-	if i := strings.Index(name, "."); i > -1 {
-		currFieldName := name[0:i]
-		field = objValue.FieldByName(currFieldName)
-		if !field.IsValid() {
-			return field, fmt.Errorf("No such field: %s in1 obj", name)
-		}
-		if !isStruct(field) {
-			return field, fmt.Errorf("Field %s expected to be an struct", currFieldName)
-		}
-		nextFieldName := name[i+1 : len(name)]
-		return getInnerField(field.Interface(), nextFieldName)
-	}
-	field = objValue.FieldByName(name)
-	if !field.IsValid() {
-		return field, fmt.Errorf("No such field: %s in obj", name)
-	}
-	return field, nil
+	v, err := getInnerFieldValueOrType(obj, name, name, true)
+	return v.(reflect.Value), err
 }
 
-func getInnerFieldType(obj interface{}, fullName, name string) (reflect.StructField, error) {
-	field := reflect.StructField{}
+func getInnerFieldType(obj interface{}, name string) (reflect.StructField, error) {
+	v, err := getInnerFieldValueOrType(obj, name, name, false)
+	return v.(reflect.StructField), err
+}
+
+func getInnerFieldValueOrType(obj interface{}, fullName, name string, value bool) (interface{}, error) {
+	var zeroValue interface{}
+	if value {
+		zeroValue = reflect.Value{}
+	} else {
+		zeroValue = reflect.StructField{}
+	}
 	if !hasValidType(obj, []reflect.Kind{reflect.Struct, reflect.Ptr}) {
-		return field, errors.New("Cannot use GetField on a non-struct interface")
+		return zeroValue, fmt.Errorf("Cannot use GetField on a non-struct interface")
 	}
 
 	objValue := reflectValue(obj)
 	if i := strings.Index(name, "."); i > -1 {
 		currFieldName := name[0:i]
-		fieldRv := objValue.FieldByName(currFieldName)
-		if !fieldRv.IsValid() {
-			return field, fmt.Errorf("No such field: %s in obj", name)
-		}
-		if !isStruct(fieldRv) {
-			return field, fmt.Errorf("Field %s expected to be an struct", currFieldName)
+		field := objValue.FieldByName(currFieldName)
+		if !field.IsValid() {
+			return zeroValue, fmt.Errorf("No such field: %s in obj", name)
 		}
 		nextFieldName := name[i+1 : len(name)]
-		return getInnerFieldType(fieldRv.Interface(), fullName, nextFieldName)
+		return getInnerFieldValueOrType(field.Interface(), fullName, nextFieldName, value)
 	}
 	if !objValue.IsValid() {
-		return field, fmt.Errorf("Nil pointer: %s in obj", fullName)
+		return zeroValue, fmt.Errorf("Nil pointer: %s in obj", fullName)
 	}
-	objType := objValue.Type()
-	field, ok := objType.FieldByName(name)
-	if !ok {
-		return field, fmt.Errorf("No such field: %s in obj", name)
+	if value {
+		field := objValue.FieldByName(name)
+		if !field.IsValid() {
+			return field, fmt.Errorf("No such field: %s in obj", name)
+		}
+		return field, nil
+	} else {
+		objType := objValue.Type()
+		field, ok := objType.FieldByName(name)
+		if !ok {
+			return field, fmt.Errorf("No such field: %s in obj", name)
+		}
+		return field, nil
 	}
-	return field, nil
 }

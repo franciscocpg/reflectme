@@ -144,6 +144,24 @@ func TestGetField_non_existing_field(t *testing.T) {
 	assert.Error(t, err)
 }
 
+func TestGetField_non_existing_nested_field(t *testing.T) {
+	dummyStruct := TestStruct{
+		Dummy: "test",
+	}
+
+	_, err := GetField(dummyStruct, "Dummy1.Bla")
+	assert.Error(t, err)
+}
+
+func TestGetField_on_non_struct_nested_field(t *testing.T) {
+	dummyStruct := TestNestedPointerStruct{
+		Dummy: "test",
+	}
+
+	_, err := GetField(dummyStruct, "Nested.Bla")
+	assert.Error(t, err)
+}
+
 func TestGetField_unexported_field(t *testing.T) {
 	dummyStruct := TestStruct{
 		unexported: 12345,
@@ -380,6 +398,15 @@ func TestGetFieldTag_non_existing_field(t *testing.T) {
 	assert.Error(t, err)
 }
 
+func TestGetFieldTag_non_existing_nested_field(t *testing.T) {
+	dummyStruct := TestStruct{
+		Dummy: "test",
+	}
+
+	_, err := GetFieldTag(dummyStruct, "Dummy1.Bla", "test")
+	assert.Error(t, err)
+}
+
 func TestGetFieldTag_unexported_field(t *testing.T) {
 	dummyStruct := TestStruct{
 		unexported: 12345,
@@ -458,6 +485,14 @@ func TestSetField_non_exported_field(t *testing.T) {
 	}
 
 	assert.Error(t, SetField(&dummyStruct, "unexported", "fail, bitch"))
+}
+
+func TestSetField_non_pointer(t *testing.T) {
+	dummyStruct := TestStruct{
+		Dummy: "test",
+	}
+
+	assert.Error(t, SetField(dummyStruct, "Dummy", "abc"))
 }
 
 func TestFieldsNames_on_struct(t *testing.T) {
@@ -866,6 +901,32 @@ func TestCopy_on_nested_struct(t *testing.T) {
 	assert.Equal(t, dummyStruct1.Nested.Dummy, dummyStruct2.Nested.Dummy)
 }
 
+func TestCopy_on_non_pointer(t *testing.T) {
+	DefaultCopyOptions.IgnoreNotFoundedFields = true
+	dummyStruct1 := TestStruct{
+		Dummy: "test",
+		Yummy: 1,
+	}
+
+	dummyStruct2 := TestStruct{
+		Dummy: "test1",
+	}
+
+	err := Copy(dummyStruct1, dummyStruct2)
+	assert.Error(t, err)
+}
+
+func TestCopy_on_non_struct(t *testing.T) {
+	DefaultCopyOptions.IgnoreNotFoundedFields = true
+	dummyStruct1 := TestStruct{
+		Dummy: "test",
+		Yummy: 1,
+	}
+
+	err := Copy(dummyStruct1, "test1")
+	assert.Error(t, err)
+}
+
 func TestIsZeroValue(t *testing.T) {
 	var i int
 	var f float64
@@ -888,6 +949,22 @@ func TestIsZeroValue(t *testing.T) {
 	assert.False(t, IsZeroValue(b))
 	assert.False(t, IsZeroValue(s))
 	assert.False(t, IsZeroValue(pSt))
+}
+
+func TestIsStruct(t *testing.T) {
+	var i int
+	var f float64
+	var b bool
+	var s string
+	st := TestStruct{}
+	pSt := &TestStruct{}
+	assert.False(t, IsStruct(i))
+	assert.False(t, IsStruct(f))
+	assert.False(t, IsStruct(b))
+	assert.False(t, IsStruct(s))
+	assert.False(t, IsStruct(nil))
+	assert.False(t, IsStruct(pSt))
+	assert.True(t, IsStruct(st))
 }
 
 func items(obj interface{}) map[string]interface{} {

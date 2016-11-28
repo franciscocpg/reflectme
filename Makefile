@@ -14,7 +14,7 @@ test-coverage:
 	go test -v -race -covermode=atomic -coverprofile=${COVERAGE_FILE}
 
 coverage-html: test-coverage
-	go tool cover -mode=atomic -html=${COVERAGE_FILE}
+	go tool cover -html=${COVERAGE_FILE}
 
 send-codecov-ci:
 	bash <(curl -s https://codecov.io/bash)
