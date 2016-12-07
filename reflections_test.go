@@ -495,6 +495,27 @@ func TestSetField_non_pointer(t *testing.T) {
 	assert.Error(t, SetField(dummyStruct, "Dummy", "abc"))
 }
 
+func TestCopyField_from_structs(t *testing.T) {
+	fromStruct := TestStruct{
+		Dummy: "test",
+	}
+
+	toStruct := TestStruct{}
+
+	err := CopyField(fromStruct, &toStruct, "Dummy")
+	assert.NoError(t, err)
+	assert.Equal(t, fromStruct.Dummy, toStruct.Dummy)
+}
+
+func TestCopyField_with_error(t *testing.T) {
+	fromStruct := "test"
+
+	toStruct := TestStruct{}
+
+	err := CopyField(fromStruct, &toStruct, "unexported")
+	assert.Error(t, err)
+}
+
 func TestFieldsNames_on_struct(t *testing.T) {
 	dummyStruct := TestStruct{
 		Dummy: "test",
