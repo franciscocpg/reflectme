@@ -78,6 +78,15 @@ func SetField(s interface{}, name string, value interface{}) error {
 	return setField(reflect.ValueOf(s), name, name, value)
 }
 
+// CopyField copies the value from/to with field name
+func CopyField(from interface{}, to interface{}, name string) error {
+	value, err := GetField(from, name)
+	if err != nil {
+		return err
+	}
+	return SetField(to, name, value)
+}
+
 func setField(v reflect.Value, name string, currName string, value interface{}) error {
 
 	if v.Kind() != reflect.Ptr {
