@@ -21,16 +21,16 @@ import (
 type (
 	// CopyOptions are options for copy function
 	CopyOptions struct {
-		CopyZeroValues         bool
-		IgnoreNotFoundedFields bool
+		CopyZeroValues       bool
+		IgnoreNotFoundFields bool
 	}
 )
 
 var (
 	// DefaultCopyOptions are the default options for copy function
 	DefaultCopyOptions = CopyOptions{
-		CopyZeroValues:         true,
-		IgnoreNotFoundedFields: true,
+		CopyZeroValues:       true,
+		IgnoreNotFoundFields: true,
 	}
 )
 
@@ -270,7 +270,7 @@ func CopyWithOptions(from interface{}, to interface{}, options CopyOptions) erro
 			continue
 		}
 		err := SetField(to, field, v)
-		if !options.IgnoreNotFoundedFields && err != nil {
+		if !options.IgnoreNotFoundFields && err != nil {
 			return err
 		}
 	}
