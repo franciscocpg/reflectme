@@ -871,7 +871,7 @@ func TestCopy_not_copying_zero_values(t *testing.T) {
 }
 
 func TestCopy_ignoring_not_founded_fields(t *testing.T) {
-	DefaultCopyOptions.IgnoreNotFoundedFields = true
+	DefaultCopyOptions.IgnoreNotFoundFields = true
 	dummyStruct1 := TestStruct{
 		Dummy: "test",
 	}
@@ -886,7 +886,7 @@ func TestCopy_ignoring_not_founded_fields(t *testing.T) {
 }
 
 func TestCopy_not_ignoring_not_founded_fields(t *testing.T) {
-	DefaultCopyOptions.IgnoreNotFoundedFields = false
+	DefaultCopyOptions.IgnoreNotFoundFields = false
 	dummyStruct1 := TestStruct{
 		Dummy: "test",
 		Yummy: 1,
@@ -901,7 +901,7 @@ func TestCopy_not_ignoring_not_founded_fields(t *testing.T) {
 }
 
 func TestCopy_on_nested_struct(t *testing.T) {
-	DefaultCopyOptions.IgnoreNotFoundedFields = true
+	DefaultCopyOptions.IgnoreNotFoundFields = true
 	dummyStruct1 := TestNestedStruct{
 		Dummy: "test",
 		Nested: NestedStruct{
@@ -923,7 +923,7 @@ func TestCopy_on_nested_struct(t *testing.T) {
 }
 
 func TestCopy_on_non_pointer(t *testing.T) {
-	DefaultCopyOptions.IgnoreNotFoundedFields = true
+	DefaultCopyOptions.IgnoreNotFoundFields = true
 	dummyStruct1 := TestStruct{
 		Dummy: "test",
 		Yummy: 1,
@@ -938,7 +938,7 @@ func TestCopy_on_non_pointer(t *testing.T) {
 }
 
 func TestCopy_on_non_struct(t *testing.T) {
-	DefaultCopyOptions.IgnoreNotFoundedFields = true
+	DefaultCopyOptions.IgnoreNotFoundFields = true
 	dummyStruct1 := TestStruct{
 		Dummy: "test",
 		Yummy: 1,
