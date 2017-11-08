@@ -870,7 +870,7 @@ func TestCopy_not_copying_zero_values(t *testing.T) {
 	assert.Equal(t, 1, dummyStruct2.Yummy)
 }
 
-func TestCopy_ignoring_not_founded_fields(t *testing.T) {
+func TestCopy_ignoring_not_found_fields(t *testing.T) {
 	DefaultCopyOptions.IgnoreNotFoundFields = true
 	dummyStruct1 := TestStruct{
 		Dummy: "test",
@@ -885,7 +885,7 @@ func TestCopy_ignoring_not_founded_fields(t *testing.T) {
 	assert.Equal(t, dummyStruct1.Dummy, dummyStruct2.Dummy)
 }
 
-func TestCopy_not_ignoring_not_founded_fields(t *testing.T) {
+func TestCopy_not_ignoring_not_found_fields(t *testing.T) {
 	DefaultCopyOptions.IgnoreNotFoundFields = false
 	dummyStruct1 := TestStruct{
 		Dummy: "test",
