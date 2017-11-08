@@ -95,6 +95,15 @@ func setField(v reflect.Value, name string, currName string, value interface{}) 
 	v = reflect.Indirect(v)
 	switch v.Kind() {
 	case reflect.Struct, reflect.Ptr:
+		if len(currName) == 0 {
+			valueOf := reflect.ValueOf(value)
+			if v.Type() != valueOf.Type() {
+				return fmt.Errorf("Provided value type (%v) didn't match obj field type (%v)\n", valueOf.Type(), v.Type())
+			}
+			v.Set(valueOf)
+			return nil
+		}
+
 		currName, nextFieldName := getCurrAndNextFieldName(currName)
 		if v.Kind() == reflect.Struct {
 			v = v.FieldByName(currName)
@@ -155,14 +164,17 @@ func fieldsNames(obj interface{}, parent string) ([]string, error) {
 	var fields []string
 	for i := 0; i < fieldsCount; i++ {
 		field := objType.Field(i)
-		var fieldName string
-		if isExportableField(field) {
-			fieldName = field.Name
-			if len(parent) > 0 {
-				fieldName = parent + "." + fieldName
-			}
-			fields = append(fields, fieldName)
+		if !isExportableField(field) {
+			continue
 		}
+
+		var fieldName string
+		fieldName = field.Name
+		if len(parent) > 0 {
+			fieldName = parent + "." + fieldName
+		}
+		fields = append(fields, fieldName)
+
 		if k := objValue.Field(i).Kind(); k == reflect.Struct || k == reflect.Ptr {
 			nestedFields, _ := fieldsNames(objValue.Field(i).Interface(), fieldName)
 			fields = append(fields, nestedFields...)
@@ -186,9 +198,11 @@ func Fields(obj interface{}) ([]reflect.StructField, error) {
 	var fields []reflect.StructField
 	for i := 0; i < fieldsCount; i++ {
 		field := objType.Field(i)
-		if isExportableField(field) {
-			fields = append(fields, field)
+		if !isExportableField(field) {
+			continue
 		}
+
+		fields = append(fields, field)
 		if k := objValue.Field(i).Kind(); k == reflect.Struct || k == reflect.Ptr {
 			nestedFields, _ := Fields(objValue.Field(i).Interface())
 			fields = append(fields, nestedFields...)
