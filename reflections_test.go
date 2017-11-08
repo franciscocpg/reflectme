@@ -7,6 +7,7 @@ package reflectme
 import (
 	"reflect"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -20,6 +21,14 @@ type TestStruct struct {
 	unexported uint64
 	Dummy      string `test:"dummytag"`
 	Yummy      int    `test:"yummytag"`
+	DateTime   time.Time
+}
+
+type TestStructDifferentType struct {
+	unexported uint64
+	Dummy      string `test:"dummytag"`
+	Yummy      int    `test:"yummytag"`
+	DateTime   string
 }
 
 type TestNestedPointerStruct struct {
@@ -524,7 +533,7 @@ func TestFieldsNames_on_struct(t *testing.T) {
 
 	fields, err := FieldsNames(dummyStruct)
 	assert.NoError(t, err)
-	assert.Equal(t, fields, []string{"Dummy", "Yummy"})
+	assert.Equal(t, fields, []string{"Dummy", "Yummy", "DateTime"})
 }
 
 func TestFieldsNames_on_nested_struct(t *testing.T) {
@@ -558,7 +567,7 @@ func TestFieldsNames_on_struct_pointer(t *testing.T) {
 
 	fields, err := FieldsNames(dummyStruct)
 	assert.NoError(t, err)
-	assert.Equal(t, fields, []string{"Dummy", "Yummy"})
+	assert.Equal(t, fields, []string{"Dummy", "Yummy", "DateTime"})
 }
 
 func TestFieldsNames_on_nested_struct_pointer(t *testing.T) {
@@ -600,7 +609,7 @@ func TestFieldsNames_with_non_exported_fields(t *testing.T) {
 
 	fields, err := FieldsNames(dummyStruct)
 	assert.NoError(t, err)
-	assert.Equal(t, fields, []string{"Dummy", "Yummy"})
+	assert.Equal(t, fields, []string{"Dummy", "Yummy", "DateTime"})
 }
 
 func TestFields_on_struct(t *testing.T) {
@@ -611,7 +620,7 @@ func TestFields_on_struct(t *testing.T) {
 
 	fields, err := Fields(dummyStruct)
 	assert.NoError(t, err)
-	expFields := []string{"Dummy", "Yummy"}
+	expFields := []string{"Dummy", "Yummy", "DateTime"}
 	for i, field := range fields {
 		assert.Equal(t, expFields[i], field.Name)
 	}
@@ -625,7 +634,7 @@ func TestFields_on_struct_pointer(t *testing.T) {
 
 	fields, err := Fields(dummyStruct)
 	assert.NoError(t, err)
-	expFields := []string{"Dummy", "Yummy"}
+	expFields := []string{"Dummy", "Yummy", "DateTime"}
 	assert.Equal(t, len(expFields), len(fields))
 	for i, field := range fields {
 		assert.Equal(t, expFields[i], field.Name)
@@ -648,7 +657,7 @@ func TestFields_with_non_exported_fields(t *testing.T) {
 
 	fields, err := Fields(dummyStruct)
 	assert.NoError(t, err)
-	expFields := []string{"Dummy", "Yummy"}
+	expFields := []string{"Dummy", "Yummy", "DateTime"}
 	assert.Equal(t, len(expFields), len(fields))
 	for i, field := range fields {
 		assert.Equal(t, expFields[i], field.Name)
@@ -778,8 +787,9 @@ func TestTags_on_struct(t *testing.T) {
 	tags, err := Tags(dummyStruct, "test")
 	assert.NoError(t, err)
 	assert.Equal(t, tags, map[string]string{
-		"Dummy": "dummytag",
-		"Yummy": "yummytag",
+		"Dummy":    "dummytag",
+		"Yummy":    "yummytag",
+		"DateTime": "",
 	})
 }
 
@@ -792,8 +802,9 @@ func TestTags_on_struct_pointer(t *testing.T) {
 	tags, err := Tags(dummyStruct, "test")
 	assert.NoError(t, err)
 	assert.Equal(t, tags, map[string]string{
-		"Dummy": "dummytag",
-		"Yummy": "yummytag",
+		"Dummy":    "dummytag",
+		"Yummy":    "yummytag",
+		"DateTime": "",
 	})
 }
 
@@ -805,30 +816,36 @@ func TestTags_on_non_struct(t *testing.T) {
 }
 
 func TestItems_on_struct(t *testing.T) {
+	now := time.Now()
 	dummyStruct := TestStruct{
-		Dummy: "test",
-		Yummy: 123,
+		Dummy:    "test",
+		Yummy:    123,
+		DateTime: now,
 	}
 
 	tags, err := Items(dummyStruct)
 	assert.NoError(t, err)
 	assert.Equal(t, tags, map[string]interface{}{
-		"Dummy": "test",
-		"Yummy": 123,
+		"Dummy":    "test",
+		"Yummy":    123,
+		"DateTime": now,
 	})
 }
 
 func TestItems_on_struct_pointer(t *testing.T) {
+	now := time.Now()
 	dummyStruct := &TestStruct{
-		Dummy: "test",
-		Yummy: 123,
+		Dummy:    "test",
+		Yummy:    123,
+		DateTime: now,
 	}
 
 	tags, err := Items(dummyStruct)
 	assert.NoError(t, err)
 	assert.Equal(t, tags, map[string]interface{}{
-		"Dummy": "test",
-		"Yummy": 123,
+		"Dummy":    "test",
+		"Yummy":    123,
+		"DateTime": now,
 	})
 }
 
@@ -840,9 +857,11 @@ func TestItems_on_non_struct(t *testing.T) {
 }
 
 func TestCopy_with_default_values(t *testing.T) {
+	now := time.Now()
 	dummyStruct1 := TestStruct{
-		Dummy: "test",
-		Yummy: 0,
+		Dummy:    "test",
+		Yummy:    0,
+		DateTime: now,
 	}
 	dummyStruct2 := TestStruct{
 		Dummy: "test1",
@@ -852,6 +871,38 @@ func TestCopy_with_default_values(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, dummyStruct1.Dummy, dummyStruct2.Dummy)
 	assert.Equal(t, dummyStruct1.Yummy, dummyStruct2.Yummy)
+	assert.Equal(t, dummyStruct1.DateTime, dummyStruct2.DateTime)
+}
+
+func TestCopy_with_different_type_ptr(t *testing.T) {
+	DefaultCopyOptions.IgnoreNotFoundFields = false
+	now := time.Now()
+	dummyStruct1 := TestStruct{
+		Dummy:    "test",
+		Yummy:    0,
+		DateTime: now,
+	}
+	dummyStruct2 := TestStructDifferentType{
+		Dummy: "test1",
+		Yummy: 1,
+	}
+	err := Copy(dummyStruct1, &dummyStruct2)
+	assert.Error(t, err)
+}
+
+func TestCopy_with_different_type(t *testing.T) {
+	DefaultCopyOptions.IgnoreNotFoundFields = false
+	dummyStruct1 := TestStructDifferentType{
+		Dummy:    "test",
+		Yummy:    0,
+		DateTime: "now",
+	}
+	dummyStruct2 := TestStruct{
+		Dummy: "test1",
+		Yummy: 1,
+	}
+	err := Copy(dummyStruct1, &dummyStruct2)
+	assert.Error(t, err)
 }
 
 func TestCopy_not_copying_zero_values(t *testing.T) {
@@ -870,7 +921,7 @@ func TestCopy_not_copying_zero_values(t *testing.T) {
 	assert.Equal(t, 1, dummyStruct2.Yummy)
 }
 
-func TestCopy_ignoring_not_founded_fields(t *testing.T) {
+func TestCopy_ignoring_not_found_fields(t *testing.T) {
 	DefaultCopyOptions.IgnoreNotFoundFields = true
 	dummyStruct1 := TestStruct{
 		Dummy: "test",
@@ -885,7 +936,7 @@ func TestCopy_ignoring_not_founded_fields(t *testing.T) {
 	assert.Equal(t, dummyStruct1.Dummy, dummyStruct2.Dummy)
 }
 
-func TestCopy_not_ignoring_not_founded_fields(t *testing.T) {
+func TestCopy_not_ignoring_not_found_fields(t *testing.T) {
 	DefaultCopyOptions.IgnoreNotFoundFields = false
 	dummyStruct1 := TestStruct{
 		Dummy: "test",
