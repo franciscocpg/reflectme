@@ -1,4 +1,4 @@
-vendor/
+bin/
 coverage.out
 github_deploy_key
 github_deploy_key.pub

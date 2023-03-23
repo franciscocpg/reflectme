@@ -1,5 +1,9 @@
-SHELL := /bin/bash
 COVERAGE_FILE = coverage.out
+export GOBIN := $(PWD)/bin
+
+gocov := $(GOBIN)/gocov
+$(gocov):
+	@go install github.com/axw/gocov/gocov@latest
 
 test:
 	go test -v
@@ -10,15 +14,8 @@ test-coverage:
 coverage-html: test-coverage
 	go tool cover -html=${COVERAGE_FILE}
 
-coverage-missing: gocov test-coverage
-	gocov convert ${COVERAGE_FILE} | gocov annotate - | grep MISS
-
-send-codecov-ci:
-	bash <(curl -s https://codecov.io/bash)
+coverage-missing: $(gocov) test-coverage
+	$(gocov) convert ${COVERAGE_FILE} | $(gocov) annotate - | grep MISS
 
 send-codecov-local:
 	bash <(curl -s https://codecov.io/bash) -t ${CODECOV_TOKEN}
-
-gocov:
-	gocov=$(shell which gocov)
-	[ ! -z $${gocov} ] || go get -v github.com/axw/gocov/gocov
