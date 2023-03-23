@@ -1,6 +1,6 @@
 ReflectME
 ===========
-![example workflow](https://github.com/franciscocpg/reflectme/actions/workflows/main.yml/badge.svg)
+![Build status](https://github.com/franciscocpg/reflectme/actions/workflows/main.yml/badge.svg)
 [![Go Reference](https://pkg.go.dev/badge/github.com/franciscocpg/reflectme.svg)](https://pkg.go.dev/github.com/franciscocpg/reflectme)
 
 Package reflectme provides high level abstractions above the golang reflect library with some utilities functions.
